@@ -1,0 +1,223 @@
+package com.romi.latihan.mencobalagi.Fragment;
+
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.romi.latihan.mencobalagi.Adapter.AdapterBoxOffice;
+import com.romi.latihan.mencobalagi.Interface.Constants;
+import com.romi.latihan.mencobalagi.Modal.ModalMovie;
+import com.romi.latihan.mencobalagi.Volley.MyApplication;
+import com.romi.latihan.mencobalagi.R;
+import com.romi.latihan.mencobalagi.Volley.VolleySIngleton;
+
+import static com.romi.latihan.mencobalagi.Interface.Keys.EndPointBoxOffice.*;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class BoxOffice extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+    private static final String STATE_MOVIES = "state_movies" ;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private ArrayList<ModalMovie> listBOxOffice = new ArrayList<>();
+    private VolleySIngleton volleySIngleton;
+    private ImageLoader imageLoader;
+    private RequestQueue requestQueue;
+    private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private RecyclerView recyclerView;
+    private AdapterBoxOffice adapterBoxOffice;
+    private TextView textVolleyError;
+
+    public static final String URL_BOX_OFFICE="http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json";
+    public BoxOffice() {
+        // Required empty public constructor
+    }
+
+
+    public static String getRequestUrl(int limit){
+        return URL_BOX_OFFICE+"?apikey="+ MyApplication.API_KEY+"&limit="+limit;
+    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        volleySIngleton = VolleySIngleton.getsInstance();
+        requestQueue = volleySIngleton.getmRequesQueue();
+
+        sendJsonRequest();
+
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(STATE_MOVIES, listBOxOffice);
+    }
+
+    public void sendJsonRequest(){
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,getRequestUrl(10),(String)null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                //Toast.makeText(getActivity(), "response" + response , Toast.LENGTH_SHORT).show();
+                // parseJsonResponse(response);
+                listBOxOffice=parseJsonResponse(response);
+                adapterBoxOffice.setMovieList(listBOxOffice);
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                handleVolleyError(error);
+            }
+        });
+
+        requestQueue.add(request);
+    }
+
+    private ArrayList<ModalMovie> parseJsonResponse(JSONObject response){
+        ArrayList<ModalMovie> listBOxOffice = new ArrayList<>();
+        if(response == null || response.length()==0){
+            return null;
+        }
+        if(response!= null && response.length()>0){
+            long id = 0;
+            String title = Constants.NA;
+            String releaseDate = Constants.NA;
+            int audienceScore =-1;
+            String urlThumbnail = Constants.NA;
+            try {
+                //StringBuilder tampil = new StringBuilder();
+                JSONArray ArrayBoxOffice = response.getJSONArray(KEY_MOVIES);
+
+                for(int i =0;i < ArrayBoxOffice.length(); i++){
+                    JSONObject currentMovie = ArrayBoxOffice.getJSONObject(i);
+                    if(currentMovie.has(KEY_ID) && !currentMovie.isNull(KEY_ID)){
+                        id = currentMovie.getLong(KEY_ID);
+                    }
+
+                    title = currentMovie.getString(KEY_TITLE);
+                    //get releasedate
+                    JSONObject objectReleaseDate = currentMovie.getJSONObject(KEY_RELEASE_DATE);
+
+                    if(objectReleaseDate.has(KEY_THEATER)){
+                        releaseDate = objectReleaseDate.getString(KEY_THEATER);
+                    }
+
+                    //get rating
+                    JSONObject objectRating = currentMovie.getJSONObject(KEY_RATINGS);
+
+                    if(objectRating.has(KEY_AUDIENCE_SCORE)){
+                        audienceScore = objectRating.getInt(KEY_AUDIENCE_SCORE);
+                    }
+                    String sinopsys = currentMovie.getString(KEY_SINOPSYS);
+
+                    //get thumbnail
+                    JSONObject objectPosters = currentMovie.getJSONObject(KEY_POSTERS);
+
+                    if(objectPosters.has(KEY_THUMBNAILS)){
+                        urlThumbnail = objectPosters.getString(KEY_THUMBNAILS);
+                    }
+
+                    ModalMovie modalBoxOffice = new ModalMovie();
+                    modalBoxOffice.setId(id);
+                    modalBoxOffice.setTitle(title);
+                    Date date = dateFormat.parse(releaseDate);
+                    modalBoxOffice.setReleaseDateTheater(date);
+                    modalBoxOffice.setAudienceScore(audienceScore);
+                    modalBoxOffice.setSynopsis(sinopsys);
+                    modalBoxOffice.setUrlThumbnail(urlThumbnail);
+
+                    listBOxOffice.add(modalBoxOffice);
+                    // tampil.append(id + " "+ title+ " " + releaseDate + " "+ audienceScore+ " " + sinopsys + " " + urlThumbnail + " \n");
+
+                }
+
+                //  Toast.makeText(getActivity(), listBOxOffice.toString(), Toast.LENGTH_LONG).show();
+            } catch (JSONException e){
+
+            } catch (ParseException e){
+
+            }
+        }
+        return listBOxOffice;
+    }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_box_office, container, false);
+        recyclerView = (RecyclerView)view.findViewById(R.id.BoxOfficeRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        adapterBoxOffice = new AdapterBoxOffice(getActivity());
+
+        recyclerView.setAdapter(adapterBoxOffice);
+        mSwipeRefreshLayout = (SwipeRefreshLayout)view.findViewById(R.id.refreshBoxOffice);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+        if(savedInstanceState!=null){
+            listBOxOffice = savedInstanceState.getParcelableArrayList(STATE_MOVIES);
+            adapterBoxOffice.setMovieList(listBOxOffice);
+        } else {
+            sendJsonRequest();
+        }
+
+
+
+        return view;
+    }
+
+
+    private void handleVolleyError(VolleyError error) {
+        textVolleyError.setVisibility(View.VISIBLE);
+        if (error instanceof NoConnectionError) {
+            textVolleyError.setText(R.string.error_no_connection);
+        } else if (error instanceof TimeoutError) {
+            textVolleyError.setText(R.string.error_timeout);
+        } else if (error instanceof AuthFailureError) {
+            textVolleyError.setText(R.string.error_auth_failure);
+        } else if (error instanceof ServerError) {
+            textVolleyError.setText(R.string.error_auth_failure);
+        } else if (error instanceof NetworkError) {
+            textVolleyError.setText(R.string.error_network);
+        } else if (error instanceof ParseError) {
+            textVolleyError.setText(R.string.error_parser);
+
+        }
+    }
+
+    @Override
+    public void onRefresh() {
+        sendJsonRequest();
+    }
+}
