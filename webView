@@ -1,0 +1,43 @@
+package com.algortima.algo;
+
+import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+
+
+public class OnlineCompiler extends ActionBarActivity {
+    private WebView view ;
+    private Toolbar toolbar;
+    String url ="http://www.tutorialspoint.com/compile_c_online.php";
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_online_compiler);
+        toolbar = (Toolbar)findViewById(R.id.appBar);
+        toolbar.setTitle("Editor");
+        setSupportActionBar(toolbar);
+
+        //untuk membuat tombol kembali ke satu halaman sebelumnya beri nilai true
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        view = (WebView)findViewById(R.id.webView);
+        view.getSettings().setJavaScriptEnabled(true);
+        view.loadUrl(url);
+        view.getSettings().setBuiltInZoomControls(true);
+        view.getSettings().setSupportZoom(true);
+    }
+
+
+
+    private class MyBrowser extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            view.loadUrl(url);
+            return true;
+        }
+    }
+}
