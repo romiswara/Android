@@ -1,0 +1,12 @@
+  //pass intent value
+  //aktivity 1
+  Intent intent = new Intent(getBaseContext(), Incredible.class);
+  intent.putExtra("Message", "winda");
+  startActivity(intent);
+                
+                
+  //aktivity 2 
+  //get Intent
+  Intent intent = getIntent();
+  String message = intent.getStringExtra("Message");
+                
