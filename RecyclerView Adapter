@@ -1,0 +1,125 @@
+package com.romi.latihan.mencobalagi.Adapter;
+
+import android.content.Context;
+import android.content.Intent;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RatingBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
+import com.romi.latihan.mencobalagi.Activity.SingleMovieActivity;
+import com.romi.latihan.mencobalagi.Modal.ModalMovie;
+import com.romi.latihan.mencobalagi.R;
+import com.romi.latihan.mencobalagi.Volley.VolleySIngleton;
+
+import java.util.ArrayList;
+
+/**
+ * Created by Asus i5 on 4/19/2015.
+ */
+public class AdapterBoxOffice extends RecyclerView.Adapter<AdapterBoxOffice.AdapterBoxOfficeVH> {
+    private ArrayList<ModalMovie> listBOxOffices = new ArrayList<>();
+    private LayoutInflater layoutInflater;
+    private VolleySIngleton volleySIngleton;
+    private ImageLoader imageLoader;
+    private Context context;
+
+
+    //Method untuk menampilkan 160 Character Sinopsi Movie
+    public String cutSinopsis(String sinopsis, int MaxSinopsis){
+        if(!TextUtils.isEmpty(sinopsis)){
+            if(sinopsis.length() >= MaxSinopsis){
+                return sinopsis.substring(0, MaxSinopsis);
+            }
+        }
+        return sinopsis;
+
+    }
+    public AdapterBoxOffice(Context context) {
+        this.context = context;
+        layoutInflater = LayoutInflater.from(context);
+        volleySIngleton = VolleySIngleton.getsInstance();
+        imageLoader = volleySIngleton.getImageLoader();
+    }
+
+    public void setMovieList(ArrayList<ModalMovie> listBOxOffices) {
+        this.listBOxOffices = listBOxOffices;
+        notifyItemRangeChanged(0, listBOxOffices.size());
+    }
+
+    @Override
+    public AdapterBoxOfficeVH onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = layoutInflater.inflate(R.layout.custom_movie_box_office, parent, false);
+        AdapterBoxOfficeVH holder = new AdapterBoxOfficeVH(view);
+        return holder;
+    }
+
+    @Override
+    public void onBindViewHolder(final AdapterBoxOfficeVH holder, int position) {
+        ModalMovie currentMovie = listBOxOffices.get(position);
+        String urlThumbnail = currentMovie.getUrlThumbnail();
+        if (urlThumbnail != null) {
+            imageLoader.get(urlThumbnail, new ImageLoader.ImageListener() {
+                @Override
+                public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                    holder.thumbnail.setImageBitmap(response.getBitmap());
+                }
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            });
+        }
+        // holder.thumbnail.setImageResource(currentMovie.getUrlThumbnail());
+        holder.MovieTitle.setText(currentMovie.getTitle());
+        //holder.MovieReleaseDate.setText(currentMovie.getReleaseDateTheater().toString());
+        holder.MovieReleaseDate.setText(cutSinopsis(currentMovie.getSynopsis()+",..",80));
+        holder.movieAudienceScore.setRating(currentMovie.getAudienceScore() / 20.0F);
+        holder.modalMovie = currentMovie;
+
+    }
+
+
+    @Override
+    public int getItemCount() {
+        return listBOxOffices.size();
+    }
+
+    public class AdapterBoxOfficeVH extends RecyclerView.ViewHolder {
+        private ImageView thumbnail;
+        private TextView MovieTitle;
+        private TextView MovieReleaseDate;
+        private RatingBar movieAudienceScore;
+        private TextView sinopsys;
+
+        public ModalMovie modalMovie;
+
+        public AdapterBoxOfficeVH(final View itemView) {
+            super(itemView);
+            thumbnail = (ImageView) itemView.findViewById(R.id.movieThumbnail);
+            MovieTitle = (TextView) itemView.findViewById(R.id.movieTitle);
+            MovieReleaseDate = (TextView) itemView.findViewById(R.id.movieReleaseDate);
+            movieAudienceScore = (RatingBar) itemView.findViewById(R.id.movieAudienceScore);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(v.getContext(), SingleMovieActivity.class);
+                    intent.putExtra("movie_title" , modalMovie.getTitle());
+                    v.getContext().startActivity(intent);
+                    Toast.makeText(v.getContext(), modalMovie.getTitle(), Toast.LENGTH_LONG).show();
+
+                }
+            });
+        }
+
+
+    }
+}
