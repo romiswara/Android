@@ -1,0 +1,378 @@
+package com.algortima.algo.db;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import com.algortima.algo.Message;
+
+import java.security.AccessControlContext;
+
+/**
+ * Created by Asus i5 on 12/21/2015.
+ */
+public class DbAdapter {
+    private Context mContext;
+    DbHelper dbHelper;
+
+    public DbAdapter(Context context) {
+        this.mContext = context;
+        dbHelper = new DbHelper(context);
+    }
+
+    public DbAdapter(AccessControlContext context) {
+    }
+
+    public void run() {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+    }
+
+    //fungsi untuk mengambil gambar\n FUNGSI Faktorial(n: integer): integer \n DEKLARASI \n i,f: integer \n ALGORITMA \n f ← n \n FOR i ← (n – 1) TO 1 STEP -1 DO \n f ← f * I \n END FOR \n RETURN f
+
+    public String getImageFrom(String id) {
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+       //select gambar name form gambar table
+        String[] kolom = {dbHelper.GAMBAR_NAME};
+        Cursor cursor = db.query(dbHelper.TABLE_GAMBAR, kolom, dbHelper.GAMBAR_FROM_BAB+"= '"+id+"'", null,null,null,null);
+        String gambar = null;
+
+        while (cursor.moveToNext()){
+             int index = cursor.getColumnIndex(dbHelper.GAMBAR_NAME);
+            gambar = cursor.getString(index);
+        }
+        return gambar;
+    }
+
+    public String getImageFromTv(String tv) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //select gambar name form gambar table
+        String[] kolom = {dbHelper.GAMBAR_NAME};
+        Cursor cursor = db.query(dbHelper.TABLE_GAMBAR, kolom, dbHelper.GAMBAR_NAME+"= '"+tv+"'", null,null,null,null);
+        String gambar = null;
+
+        while (cursor.moveToNext()){
+            int index = cursor.getColumnIndex(dbHelper.GAMBAR_NAME);
+            gambar = cursor.getString(index);
+        }
+        return gambar;
+    }
+
+    //fungsi untuk mengambil video
+    public String getVideoFrom(String id) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //select video name form video table
+        String[] kolom = {dbHelper.VIDEO_URL};
+        Cursor cursor = db.query(dbHelper.TABLE_VIDEO, kolom, dbHelper.VIDEO_FROM_BAB+"= '"+id+"'", null,null,null,null);
+        String video = null;
+
+        while (cursor.moveToNext()){
+            int index = cursor.getColumnIndex(dbHelper.VIDEO_URL);
+            video = cursor.getString(index);
+        }
+        return video;
+    }
+
+    //fungsi untuk mengambil Title konten
+    public String[] getKontenFrom(String id) {
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //select konten title  form konten table
+        String[] kolom = {dbHelper.KONTEN_TITLE};
+        Cursor cursor = db.query(dbHelper.TABLE_KONTEN, kolom, dbHelper.KONTEN_FROM_BAB+"= '"+id+"'", null,null,null,null);
+        String[] data = new String[cursor.getCount()];
+
+        int i =0;
+        while (cursor.moveToNext()){
+            int index = cursor.getColumnIndex(dbHelper.KONTEN_TITLE);
+            String konten = cursor.getString(index);
+            data[i] = konten;
+            i++;
+        }
+        return data;
+    }
+
+    //fungsi untuk mengambil Title konten
+    public String[] getJudulArray() {
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //select konten title  form konten table
+        String[] kolom = {dbHelper.BAB_NAME};
+        Cursor cursor = db.query(dbHelper.TABLE_BAB, kolom, null, null,null,null,null);
+        String[] data = new String[cursor.getCount()];
+
+        int i =0;
+        while (cursor.moveToNext()){
+            int index = cursor.getColumnIndex(dbHelper.BAB_NAME);
+            String konten = cursor.getString(index);
+            data[i] = konten;
+            i++;
+        }
+        return data;
+    }
+
+    //fungsi untuk mengambil description konten
+    public String[] getKontenDescriptionFrom(String id) {
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //select konten description  form konten table
+        String[] kolom = {dbHelper.KONTEN_DESCRIPTION};
+        Cursor cursor = db.query(dbHelper.TABLE_KONTEN, kolom, dbHelper.KONTEN_FROM_BAB+"= '"+id+"'", null,null,null,null);
+        String[] data = new String[cursor.getCount()];
+
+        int i =0;
+        while (cursor.moveToNext()){
+            int index = cursor.getColumnIndex(dbHelper.KONTEN_DESCRIPTION);
+            String konten = cursor.getString(index);
+            data[i] = konten;
+            i++;
+        }
+        return data;
+    }
+
+    //fungsi untuk kode ASCII
+    public Cursor readEntry() {
+
+        String[] allColumns = new String[]{dbHelper.ASCII_HEX, dbHelper.ASCII_DEC,
+                dbHelper.ASCII_GLYPH, dbHelper.ASCII_KETERANGAN};
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        Cursor c = db.query(dbHelper.TABLE_KODE_ASCII, allColumns, null, null, null,
+                null, null);
+
+        if (c != null) {
+            c.moveToFirst();
+        }
+        return c;
+    }
+
+    //fungsi untuk pencarian kode ASCII
+    //fungsi untuk mengambil video
+
+    public String getAsciiFromDec(String id) {
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        //select video name form video table
+        String[] kolom = {dbHelper.ASCII_GLYPH};
+        Cursor cursor = db.query(dbHelper.TABLE_KODE_ASCII, kolom, dbHelper.ASCII_DEC+"= '"+id+"'", null,null,null,null);
+        String ascii = null;
+
+        while (cursor.moveToNext()){
+            int index = cursor.getColumnIndex(dbHelper.ASCII_GLYPH);
+            ascii = cursor.getString(index);
+
+        }
+        return ascii;
+    }
+
+    class DbHelper extends SQLiteOpenHelper {
+
+
+        private static final String DATABASE_NAME = "room";
+        private static final int DATABASE_VERSION = 1;
+
+
+        //tabel konten
+        private static final String TABLE_KONTEN = "konten";
+        private static final String KONTEN_ID = "id";
+        private static final String KONTEN_TITLE = "title";
+        private static final String KONTEN_DESCRIPTION = "description";
+        private static final String KONTEN_FROM_BAB = "bab_id";
+
+        //table bab
+        private static final String TABLE_BAB = "bab";
+        private static final String BAB_ID = "id";
+        private static final String BAB_NAME = "bab_name";
+
+        //table gambar
+        private static final String TABLE_GAMBAR = "gambar";
+        private static final String GAMBAR_ID = "id";
+        private static final String GAMBAR_NAME = "gambar_name";
+        private static final String GAMBAR_FROM_BAB = "bab_id";
+
+        //table video
+        private static final String TABLE_VIDEO = "video";
+        private static final String VIDEO_ID = "id";
+        private static final String VIDEO_URL = "gambar_name";
+        private static final String VIDEO_FROM_BAB = "video_id";
+
+        //table kode ascii
+        private static final String TABLE_KODE_ASCII = "kode_ascii";
+        private static final String ASCII_ID = "id";
+        private static final String ASCII_KETERANGAN = "keterangan";
+        private static final String ASCII_DEC = "desimal";
+        private static final String ASCII_HEX = "hexa";
+        private static final String ASCII_GLYPH = "glyph";
+
+
+
+        private static final String DROP_TABLE_BAB = "DROP TABLE " + TABLE_BAB;
+        private static final String DROP_TABLE_GAMBAR = "DROP TABLE " + TABLE_GAMBAR;
+        private static final String DROP_TABLE_VIDEO = "DROP TABLE " + TABLE_VIDEO;
+
+
+        private Context context;
+
+        //CREATE BAB TABLE QUERY
+        private static final String CREATE_BAB_TABLE = "CREATE TABLE " + TABLE_BAB + "(" + BAB_ID
+               + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+               + BAB_NAME + " VARCHAR(255))";
+
+        //CREATE VIDEO TABLE QUERY
+        private static final String CREATE_VIDEO_TABLE = "CREATE TABLE " + TABLE_VIDEO + "(" + VIDEO_ID
+                + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + VIDEO_URL + " VARCHAR(255),"
+                + VIDEO_FROM_BAB + " VARCHAR(255))";
+
+        //CREATE GAMBAR TABLE QUERY
+        private static final String CREATE_GAMBAR_TABLE = "CREATE TABLE " + TABLE_GAMBAR + "(" + GAMBAR_ID
+                + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + GAMBAR_NAME + " VARCHAR(255),"
+                + GAMBAR_FROM_BAB + " VARCHAR(255))";
+
+        //CREATE KONTEN TABLE QUERY
+        private static final String CREATE_KONTEN_TABLE = "CREATE TABLE " + TABLE_KONTEN + "(" + KONTEN_ID
+                + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + KONTEN_TITLE + " VARCHAR(255),"
+                + KONTEN_DESCRIPTION + " VARCHAR(255),"
+                + KONTEN_FROM_BAB + " VARCHAR(255))";
+
+        //CREATE KONTEN TABLE ASCII
+        private static final String CREATE_KODE_ASCII_TABLE = "CREATE TABLE " + TABLE_KODE_ASCII + "(" + ASCII_ID
+                + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + ASCII_GLYPH + " VARCHAR(255),"
+                + ASCII_HEX + " VARCHAR(255),"
+                + ASCII_DEC + " VARCHAR(255),"
+                + ASCII_KETERANGAN + " VARCHAR(255))";
+
+
+        //FUNCTION
+
+
+
+
+        public DbHelper(Context context) {
+            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+            this.context = context;
+            // Message.message(context, "Constructor Called");
+
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            try {
+
+               db.execSQL(CREATE_BAB_TABLE);
+               db.execSQL(CREATE_GAMBAR_TABLE);
+               db.execSQL(CREATE_VIDEO_TABLE);
+               db.execSQL(CREATE_KONTEN_TABLE);
+               db.execSQL(CREATE_KODE_ASCII_TABLE);
+
+                //insert for bab
+                String[] bab = {"Pengantar Algoritma", "Kompilasi", "Tipe Data", "Notasi Algoritma", "Struktur Kontrol Keputusan", "Struktur Kontrol Perulangan", "ASCII", "Fungsi","Rekursif"};
+                ContentValues contentValues = new ContentValues();
+                for(int i =0; i<bab.length; i++){
+                    contentValues.put(dbHelper.BAB_NAME, bab[i]);
+                    db.insert(DbHelper.TABLE_BAB, null, contentValues);
+                }
+
+                //insert for konten
+                String[] konten_title ={"Pengertian Algoritma", "Penemu Algoritma","Kriteria Algoritma yang baik:","Pengertian Compiler","DATA","Integer","Float","Char","Boolean","Notasi Algoritma ada 3 yaitu:","Kalimat Deskriptif","Program Ganjil Genap","Flowchart","Pseudocode","Struktur if","Struktur if-else","Struktur if-else-if","Struktur switch","Struktur while","Struktur do while","Struktur for","Tipe Void","Tipe non-void","Rekursif","Contoh Faktorial"};
+                String[] konten_des = {"Algoritma adalah urutan langkah - langkah penyelesaian masalah yang tersusun secara logis dan sistematis","Penemu Algoritma (Abdullah Muhammad Bin Musa Al Khawarizmi)","1) Tepat, benar, sederhana, standar dan efektif \n2)Logis, terstruktur dan sistematis \n3)Semua operasi terdefinisi \n4) Semua proses harus berakhir setelah sejumlah langkah dilakukan \n5) Ditulis dengan bahasa yang standar dengan format pemrograman agar mudah untuk diimplementasikan dan tidak menimbulkan arti ganda.\n \n Suatu algoritma harus menghasilkan output yang tepat guna (efektif) dalam waktu yang relatif singkat dan penggunaan memori yang relatif sedikit (efisien) dengan langkah yang berhingga dan prosesnya berakhir baik dalam keadaaan diperoleh suatu solusi ataupun tidak adanya solusi.","Agar suatu program dapat dimengerti oleh komputer, maka program haruslah diterjemahkan kedalam bahasa komputer yaitu kode mesin. Adapun penerjemah yang digunakan bisa berupa Interpreter atau Compiler. \n \n Interpreter adalah suatu jenis penerjemah baris perbaris instruksi untuk setiap saat. Keuntungan pemakaian interpreter, penyusunan program relatif lebih cepat dan bisa langsung diuji sekalipun masih ada beberapa kesalahan secara kaidah dalam program. \n \n Compiler adalah suatu jenis penerjemah yang menerjemahkan secara sekaligus seluruh instruksi. Proses kompilasi ini dilakukan sekali saja. Selanjutnya hasil penerjemahan bisa dijalankan secara langsung, tanpa tergantung lagi oleh program sumber maupun kompilernya."
+                                        ,"Data adalah catatan sekumpulan fakta yang belum memiliki arti. \nAda 5 tipe data yaitu Integer, float, char, boolean."
+                                        ,"Integer adalah type data pada php yang berupa angka bulat seperti 1, 22, 100, 1000, type data ini sangat umum digunakan di bahasa pemrograman khusunya berkaitan dengan angka bulat. Nilai integer bisa bernilai negatif atau positif dan jika tidak diberi tanda ( – ) maka diasumsikan sebagai nilai positif \n - String \n String adalah type data pada php yang berisi text dan karakter dimana bentuknya bisa kata atau kalimat. Dan dalam PHP untuk penulisan jenis type data ini ada 4 cara yaitu Single Quoted, Double Quoted, Heredoc, Nowdoc."
+                                        ,"Tipe data float (disebut juga tipe data floating point, atau real number) adalah tipe data angka yang memiliki bagian desimal di akhir angka, atau memiliki floating point (floating point adalah istilah dalam bahasa inggris untuk menyebut tanda “titik” yang menandakan bilangan desimal). \n Contoh: 0,9 atau 3,14."
+                                        ,"Variabel char digunakan untuk mengolah nilai berbentuk karakter, dan varibel char hanya mengenali satu karakter huruf. Untuk input dan output nilai pada variabel char menggunakan &c dan %c. \n contoh char huruf =' a'; "
+                                        ,"Boolean adalah suatu tipe data yang hanya mempunyai dua nilai. Yaitu true atau false (benar atau salah). Pada beberapa bahasa pemograman nilai true bisa digantikan 1 dan nilai false digantikan 0."
+                                        ,"-\tKalimat Deskriptif \n-\tFlowchart\n-\tPseudocode"
+                                        ,"Kalimat deskriptif menggunakan kalimat untuk menjelaskan langkah"
+                                        ,"Diberikan sebuah bilangan bulat positif X untuk dicek apakah termasuk ganjil atau genap \nALGORITMA \n1.Baca X \n2. Jika X habis dibagi 2 maka tulis “Genap”, jika tidak maka tulis “Ganjil”"
+                                        ,"Merupakan diagram alir dan symbol yang digunakan disepakati bersama."
+                                        ,"Menggunakan kode dan mirip bahasa pemrograman"
+                ,"Memutuskan mengeksekusi statemen jika dan hanya jika kondisi terpenuhi. "
+                ,"Memutuskan mengeksekusi statemen bila kondisi terpenuhi, atau mengeksekusi statemen lain bila kondisi tidak terpenuhi. "
+                ,"Struktur if cabang kondisi else dari struktur if else sebelumnya "
+                ," Statement switch-case berfungsi mengeksekusi blok program dengan membandingkan nilai suatu variabel sebagai pilihan dalam menentukan blok yang akan dieksekusi. "
+
+                ,"Perulangan while banyak digunakan pada program yang terstruktur. Perulangan ini banyak digunakan bila jumlah perulangannya belum diketahui. Proses perulangan akan terus berlanjut selama kondisinya bernilai benar (true) dan akan berhenti bila kondisinya bernilai salah atau batas yang ditentukan telah terpenuhi."
+                ,"Digunakan untuk menjalankan suatu pernyataan lalu diuji apakah kondisi sudah bernilai benar, tapi jika bernilai salah maka pernyataan tidak dijalankan. Pada dasarnya perulangan do….while sama saja dengan perulangan while, hanya saja pada proses perulangan dengan while, seleksi berada di while yang letaknya di atas sementara pada perulangan do….while, seleksi while berada di bawah batas perulangan. Jadi dengan menggunakan struktur do…while sekurang-kurangnya akan terjadi satu kali perulangan. "
+                ,"Merupakan salah satu bentuk fungsi perulangan, digunakan untuk melaksanakan pernyataan berulang kali terhadap sejumlah nilai yang telah ditetapkan (jumlah putaran harus ditetapkan terllebih dahulu). \nStruktur berisi nilai awal , kondisi, dan langkah perulangan dan jumlah perulangan ditentukan dalam struktur . "
+                //,"ASCII Merupakan kepanjangan dari American Standard Code for Information InterChange yang  merupakan suatu standar internasional dalam kode huruf dan simbol seperti Hex dan Unicode tetapi ASCII lebih bersifat universal, contohnya 124 adalah untuk karakter \"|\". Ia selalu digunakan oleh komputer dan alat komunikasi lain untuk menunjukkan teks. Kode ASCII sebenarnya memiliki komposisi bilangan biner sebanyak 7 bit. Namun, ASCII disimpan sebagai sandi 8 bit dengan menambakan satu angka 0 sebagai bit significant paling tinggi. Bit tambahan ini sering digunakan untuk uji prioritas. Karakter control pada ASCII dibedakan menjadi 5 kelompok sesuai dengan penggunaan yaitu berturut-turut meliputi logical communication, Device control, Information separator, Code extention, dan physical communication. Code ASCII ini banyak dijumpai pada papan ketik (keyboard) computer atau instrument-instrument digital. \n Jumlah kode ASCII adalah 255 kode. Kode ASCII 0..127 merupakan kode ASCII untuk manipulasi teks; sedangkan kode ASCII 128..255 merupakan kode ASCII untuk manipulasi grafik. Kode ASCII sendiri dapat dikelompokkan lagi kedalam beberapa bagian: \n -Kode yang tidak terlihat simbolnya seperti Kode 10(Line Feed), 13(Carriage Return), 8(Tab), 32(Space) \n -Kode yang terlihat simbolnya seperti abjad (A..Z), numerik (0..9), karakter khusus (~!@#$%^&*()_+?:”{}) \n -Kode yang tidak ada di keyboard namun dapat ditampilkan. Kode ini umumnya untuk kode-kode grafik. "
+                ,"Fungsi adalah sup-program yang menerima data masukan atau parameter inputan, kemudian melakukan beberapa proses, dan dilanjut dengan mengembalikan nilai hasil proses yang akan digunakan oleh proses yang memanggil fungsi trsebut. Pendeklarasian fungsi merupakan salah satu cara memecah persoalan kedalam beberapa sub persoalan yang lebih mudah diselesaikan."
+
+                ,"Mengembalikan nilai selain void (integer, float, string, dll)."
+                ,"- Rekursif adalah fungsi yang memanggil dirinya sendiri. \n- Terdapat suatu kondisi untuk berhenti\n"
+                ,"- Konsep Faktorial : n! = n(n-1)(n-2)...1 \n- Dapat diselesaikan dengan cara biasa atau rekursif."
+                };
+
+                String[] konten_from_kategori = {"Pengantar Algoritma","Pengantar Algoritma","Pengantar Algoritma","Kompilasi","Tipe Data","Tipe Data","Tipe Data","Tipe Data","Tipe Data","Notasi Algoritma","Notasi Algoritma","Notasi Algoritma","Notasi Algoritma","Notasi Algoritma","Struktur Kontrol Keputusan","Struktur Kontrol Keputusan","Struktur Kontrol Keputusan","Struktur Kontrol Keputusan","Struktur Kontrol Perulangan","Struktur Kontrol Perulangan","Struktur Kontrol Perulangan","Fungsi","Fungsi","Rekursif","Rekursif"};
+                ContentValues contentValues3 = new ContentValues();
+                for(int i =0; i<konten_title.length; i++){
+                    contentValues3.put(dbHelper.KONTEN_TITLE, konten_title[i]);
+                    contentValues3.put(dbHelper.KONTEN_DESCRIPTION, konten_des[i]);
+                    contentValues3.put(dbHelper.KONTEN_FROM_BAB, konten_from_kategori[i]);
+                    db.insert(DbHelper.TABLE_KONTEN, null, contentValues3);
+                }
+
+                //insert for video
+                String[] video = {"https://www.youtube.com/watch?v=7FBhXb7Myts", "https://youtu.be/wMZc3xuEvTc", "https://www.youtube.com/watch?v=-gseUDXSZPc", "https://www.youtube.com/watch?v=Eu6TlfLaLCw", "https://www.youtube.com/watch?v=5iEBeVgevHA", "https://www.youtube.com/watch?v=hv_TuHQEvW8", "https://www.youtube.com/watch?v=yQD-MTxSZ78", "https://www.youtube.com/watch?v=W8L83AJsOUU"};
+                String[] video_from_kategori ={"Pengantar Algoritma","Kompilasi", "Tipe Data", "Notasi Algoritma","Struktur Kontrol Keputusan","Struktur Kontrol Perulangan","ASCII","Fungsi"};
+               ContentValues contentValues1 = new ContentValues();
+                for(int i =0; i<video.length && i<video_from_kategori.length; i++){
+                    contentValues1.put(dbHelper.VIDEO_URL, video[i]);
+                    contentValues1.put(dbHelper.VIDEO_FROM_BAB, video_from_kategori[i]);
+                    db.insert(DbHelper.TABLE_VIDEO, null, contentValues1);
+                }
+
+                //insert for gambar
+                String[] gambar = {"penemu_algoritma", "kompilasi","ascii","kalimat_deskriptif","simbol_flowchart","struktur_do_while","struktur_if","struktur_if_else","struktur_if_else_if","struktur_switch","struktur_while","struktur_do_while","struktur_for","flowchart","pseudocode","tipe_void","tipe_non_void","contoh_faktorial"};
+                String[] gambar_from_kategori ={"tambahan","Kompilasi","ASCII","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan","tambahan"};
+                ContentValues contentValues2 = new ContentValues();
+                for(int i =0; i<gambar.length && i<gambar_from_kategori.length; i++){
+                    contentValues2.put(dbHelper.GAMBAR_NAME, gambar[i]);
+                    contentValues2.put(dbHelper.GAMBAR_FROM_BAB, gambar_from_kategori[i]);
+                    db.insert(DbHelper.TABLE_GAMBAR, null, contentValues2);
+                }
+
+                //insert for ASCII
+
+                String[] glyph ={"NUL","SOH","STX","ETX","EOT","ENQ","ACK","BEL","BS","HT","LF","VT","FF","CR","SO","SI","DLE","DC1","DC2","DC3","DC4","NAK","SYN","STB","CAN","EM","SUB","ESC","FS","GS","RS","US","SP","!","a","#","$","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","a","]","^","_","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","DEL","","","","","IND","NEL","SSA","ESA","","","","PLD","PLU","","SS2","SS3","DCS","PU1","PU2","STS","CCH","MW","","","","","","CSI","ST","OSC","PM","APC","","¡","¢","£","¤","¥","|","§","¨","©","ª","«","¬","","®","¯","°","±","²","³","´","µ","¶","·"};
+                String[] hex ={"0000","0001","0002","0003","0004","0005","0006","0007","0008","0009","000A","000B","000C","000D","000E","000F","0010","0011","0012","0013","0014","0015","0016","0017","0018","0019","001A","001B","001C","001D","001E","001F","0020","0021","0022","0023","0024","0025","0026","0027","0028","0029","002A","002B","002C","002D","002E","002F","0030","0031","0032","0033","0034","0035","0036","0037","0038","0039","003A","003B","003C","003D","003E","003F","0040","0041","0042","0043","0044","0045","0046","0047","0048","0049","004A","004B","004C","004D","004E","004F","0050","0051","0052","0053","0054","0055","0056","0057","0058","0059","005A","00SB","005C","005D","005E","005F","0060","0061","0062","0063","0064","0065","0066","0067","0068","0069","006A","006B","006C","006D","006E","006F","0070","0071","0072","0073","0074","0075","0076","0077","0078","0079","007A","007B","007C","007D","007E","007F","0080","0081","0082","0083","0084","0085","0086","0087","0088","0089","008A","008B","008C","008D","008E","008F","0090","0091","0092","0093","0094","0095","0096","0097","0098","0099","009A","009B","009C","009D","009E","009F","00A0","00A1","00A2","00A3","00A4","00A5","00A6","00A7","00A8","00A9","00AA","00AB","00AC","00AD","00AE","00AF","00B0","00B1","00B2","00B3","00B4","00B5","00B6","00B7"};
+                String[] dec ={"0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145","146","147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183"};
+                //String[] keterangan ={"Null (tidak tampak)","Start of heading (tidak tampak)","Start of text (tidak tampak)","End of text (tidak tampak)","End of transmission (tidak tampak)","Enquiry (tidak tampak)","Acknowledge (tidak tampak)","Bell (tidak tampak)","Menghapus satu karakter di belakang kursor (Backspace)","Horizontal tabulation","Pergantian baris (Line feed)","Tabulasi vertikal","Pergantian baris (Form feed)","Pergantian baris (carriage return)","Shift out (tidak tampak)","Shift in (tidak tampak)","Data link escape (tidak tampak)","Device control 1 (tidak tampak)","Device control 2 (tidak tampak)","Device control 3 (tidak tampak)","Device control 4 (tidak tampak)","Negative acknowledge (tidak tampak)","Synchronous idle (tidak tampak)","End of transmission block (tidak tampak)","Cancel (tidak tampak)","End of medium (tidak tampak)","Substitute (tidak tampak)","Escape (tidak tampak)","File separator","Group separator","Record separator","Unit separator","Spasi","Tanda seru (exclamation)","Tanda kutip dua","Tanda pagar (kres)","Tanda mata uang dolar","Tanda persen","Karakter ampersand (&)","Karakter Apostrof","Tanda kurung buka","Tanda kurung tutup","Karakter asterisk (bintang)","Tanda tambah (plus)","Karakter koma","Karakter hyphen (strip)","Tanda titik","Garis miring (slash)","Angka nol","Angka satu","Angka dua","Angka tiga","Angka empat","Angka lima","Angka enam","Angka tujuh","Angka delapan","Angka sembilan","Tanda titik dua","Tanda titik koma","Tanda lebih kecil","Tanda sama dengan","Tanda lebih besar","Tanda tanya","A keong (@)","Huruf latin A kapital","Huruf latin B kapital","Huruf latin C kapital","Huruf latin D kapital","Huruf latin E kapital","Huruf latin F kapital","Huruf latin G kapital","Huruf latin H kapital","Huruf latin I kapital","Huruf latin J kapital","Huruf latin K kapital","Huruf latin L kapital","Huruf latin M kapital","Huruf latin N kapital","Huruf latin O kapital","Huruf latin P kapital","Huruf latin Q kapital","Huruf latin R kapital","Huruf latin S kapital","Huruf latin T kapital","Huruf latin U kapital","Huruf latin V kapital","Huruf latin W kapital","Huruf latin X kapital","Huruf latin Y kapital","Huruf latin Z kapital","Kurung siku kirI","Garis miring terbalik (backslash)","Kurung siku kanan","Tanda pangkat","Garis bawah (underscore)","Tanda petik satu","Huruf latin a kecil","Huruf latin b kecil","Huruf latin c kecil","Huruf latin d kecil","Huruf latin e kecil","Huruf latin f kecil","Huruf latin g kapital","Huruf latin H kapital","Huruf latin i kapital","Huruf latin j kapital","Huruf latin k kapital","Huruf latin l kapital","Huruf latin m kapital","Huruf latin n kapital","Huruf latin o kapital","Huruf latin p kapital","Huruf latin q kapital","Huruf latin r kapital","Huruf latin s kapital","Huruf latin t kapital","Huruf latin u kapital","Huruf latin v kapital","Huruf latin w kapital","Huruf latin x kapital","Huruf latin y kapital","Huruf latin z kapital","Kurung kurawal buka","Garis vertikal (pipa)","Kurung kurawal tutup","Karakter gelombang (tilde)","Delete","Dicadangkan","Dicadangkan","Dicadangkan","Dicadangkan","Index","Next line","Start of selected area","End of selected area","Character tabulation set","Character tabulation with justification","Line tabulation set","Partial line down","Partial line up","Reverse line feed","Single shift two","Single shift three","Device control string","Private use one","Private use two","Set transmit state","Cancel characte","Message waiting","Start of guarded area","End of guarded area","Start of string","Dicadangkan","Single character introducer","Control sequence introducer","String terminator","Operating system command","Privacy message","Application program command","Spasi yang bukan pemisah kata","Tanda seru terbalik","Tanda sen (Cent)","163","Tanda Poundsterling","Tanda mata uang (Currency)","Tanda Yen","Garis tegak putus-putus (broken bar)","Section sign","Diaeresis","Tanda hak cipta (Copyright)","Feminine ordinal indicator","Left-pointing double angle quotation mark","Not sign","Tanda strip (hyphen)","Tanda merk terdaftar","Macron","Tanda derajat","Tanda kurang lebih (plus-minus)","Tanda kuadrat (pangkat dua)","Tanda kubik (pangkat tiga)","Acute accent","Micro sign","Pilcrow sign","Middle dot"};
+                ContentValues contentValues4 = new ContentValues();
+                for(int i =0; i<glyph.length; i++){
+                    contentValues4.put(dbHelper.ASCII_GLYPH, glyph[i]);
+                    contentValues4.put(dbHelper.ASCII_HEX, hex[i]);
+                    contentValues4.put(dbHelper.ASCII_DEC, dec[i]);
+                   // contentValues4.put(dbHelper.ASCII_KETERANGAN, keterangan[i]);
+                    db.insert(DbHelper.TABLE_KODE_ASCII, null, contentValues4);
+                }
+
+
+
+                Message.message(context, "OnCreate Called");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            try {
+
+
+//               db.execSQL(DROP_TABLE_BAB);
+//               db.execSQL(DROP_TABLE_GAMBAR);
+//               db.execSQL(DROP_TABLE_VIDEO);
+//
+//                onCreate(db);
+                Message.message(context, "OnUpgrade Called");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
